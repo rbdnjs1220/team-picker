@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>발표 팀 뽑기</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; background: #f0f0f5; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 24px 16px; }
+.wrap { background: #fff; border-radius: 16px; padding: 2rem 1.5rem; width: 100%; max-width: 480px; box-shadow: 0 4px 24px rgba(0,0,0,0.10); }
+.screen { display: none; }
+.screen.active { display: block; }
+.title { font-size: 20px; font-weight: 700; color: #1c1c1e; margin-bottom: 6px; text-align: center; }
+.sub { font-size: 13px; color: #888; margin-bottom: 1.5rem; text-align: center; line-height: 1.6; }
+.count-row { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 8px; }
+.cnt-btn { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid #AFA9EC; background: #EEEDFE; color: #3C3489; font-size: 22px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s; }
+.cnt-btn:hover { background: #7F77DD; color: #fff; border-color: #7F77DD; }
+.cnt-num { font-size: 52px; font-weight: 700; color: #3C3489; min-width: 80px; text-align: center; }
+.cnt-label { font-size: 13px; color: #888; margin-bottom: 1.5rem; text-align: center; }
+.action-btn { width: 100%; padding: 13px; border-radius: 12px; border: none; background: #7F77DD; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+.action-btn:hover { opacity: 0.85; }
+.back-btn { width: 100%; padding: 13px; border-radius: 12px; border: 1px solid #e5e5ea; background: #f7f7f9; color: #555; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+.back-btn:hover { opacity: 0.75; }
+.btn-row { display: flex; gap: 8px; }
+.btn-row .back-btn, .btn-row .action-btn { flex: 1; }
+.names-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1.2rem; }
+.name-input-wrap { display: flex; flex-direction: column; gap: 4px; }
+.name-label { font-size: 11px; color: #aaa; padding-left: 2px; }
+.name-input { border: 1.5px solid #e5e5ea; border-radius: 10px; padding: 8px 11px; font-size: 14px; background: #f7f7f9; color: #1c1c1e; outline: none; font-family: inherit; width: 100%; transition: border-color 0.15s; }
+.name-input:focus { border-color: #7F77DD; background: #fff; }
+.pick-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.pick-title { font-size: 15px; font-weight: 600; color: #1c1c1e; }
+.reset-btn { font-size: 12px; color: #888; background: none; border: 1px solid #e5e5ea; border-radius: 8px; padding: 4px 10px; cursor: pointer; font-family: inherit; }
+.reset-btn:hover { border-color: #7F77DD; color: #534AB7; }
+.teams-grid { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin-bottom: 1.2rem; }
+.pill { min-width: 44px; height: 36px; padding: 0 12px; border-radius: 18px; border: 1px solid #e5e5ea; background: #f7f7f9; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; color: #888; transition: all 0.2s; }
+.pill.rolling { background: #EEEDFE; border-color: #AFA9EC; color: #3C3489; }
+.pill.winner { background: #7F77DD; border-color: #534AB7; color: #fff; transform: scale(1.1); }
+.pill.done { background: #f7f7f9; border-color: #e5e5ea; color: #ccc; text-decoration: line-through; }
+.drum-wrap { text-align: center; margin-bottom: 1.2rem; }
+.drum { width: 168px; height: 168px; border-radius: 50%; border: 3px solid #7F77DD; display: flex; align-items: center; justify-content: center; flex-direction: column; background: #EEEDFE; cursor: pointer; margin: 0 auto 1.2rem; user-select: none; transition: background 0.2s; padding: 0 20px; }
+.drum:active { transform: scale(0.96); }
+.drum-name { font-size: 20px; font-weight: 700; color: #3C3489; line-height: 1.3; text-align: center; transition: color 0.15s; word-break: keep-all; }
+.drum-lbl { font-size: 11px; color: #534AB7; margin-top: 6px; }
+.pick-btn { padding: 11px 32px; border-radius: 12px; border: none; background: #7F77DD; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+.pick-btn:hover { opacity: 0.85; }
+.pick-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.result { margin: 1.2rem 0 0; padding: 14px 20px; border-radius: 12px; border: 1px solid #e5e5ea; background: #f7f7f9; display: none; text-align: center; }
+.result-team { font-size: 22px; font-weight: 700; color: #3C3489; }
+.result-msg { font-size: 13px; color: #888; margin-top: 4px; }
+.cp { position: fixed; border-radius: 2px; animation: fall linear forwards; pointer-events: none; z-index: 999; }
+@keyframes fall { 0%{transform:translateY(-20px) rotate(0deg);opacity:1} 100%{transform:translateY(100vh) rotate(720deg);opacity:0} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="screen active" id="s1">
+    <div class="title">발표 팀 뽑기 🥁</div>
+    <div class="sub">팀이 몇 팀인지 설정해주세요!</div>
+    <div class="count-row">
+      <button class="cnt-btn" onclick="chg(-1)">−</button>
+      <div class="cnt-num" id="cnt">6</div>
+      <button class="cnt-btn" onclick="chg(1)">+</button>
+    </div>
+    <div class="cnt-label" id="cnt-lbl">6팀</div>
+    <button class="action-btn" onclick="toNames()">다음 → 팀 이름 입력</button>
+  </div>
+
+  <div class="screen" id="s2">
+    <div class="title">팀 이름을 입력해주세요!</div>
+    <div class="sub">비워두면 자동으로 숫자로 대체돼요</div>
+    <div class="names-grid" id="names-grid"></div>
+    <div class="btn-row">
+      <button class="back-btn" onclick="toStep1()">← 뒤로</button>
+      <button class="action-btn" onclick="toPickScreen()">뽑기 시작하기 →</button>
+    </div>
+  </div>
+
+  <div class="screen" id="s3">
+    <div class="pick-header">
+      <div class="pick-title" id="pick-title"></div>
+      <button class="reset-btn" onclick="toStep1()">← 처음으로</button>
+    </div>
+    <div class="teams-grid" id="grid"></div>
+    <div class="drum-wrap">
+      <div class="drum" id="drum" onclick="pick()">
+        <div class="drum-name" id="dname">?</div>
+        <div class="drum-lbl" id="dlbl">눌러서 뽑기!</div>
+      </div>
+      <button class="pick-btn" id="pbtn" onclick="pick()">뽑기 시작!</button>
+    </div>
+    <div class="result" id="result">
+      <div class="result-team" id="rteam"></div>
+      <div class="result-msg" id="rmsg"></div>
+    </div>
+  </div>
+
+</div>
+<script>
+let N=6, teams=[], picked=new Set(), running=false;
+
+function chg(d){ N=Math.max(2,Math.min(20,N+d)); document.getElementById('cnt').textContent=N; document.getElementById('cnt-lbl').textContent=N+'팀'; }
+
+function show(id){ ['s1','s2','s3'].forEach(s=>{ document.getElementById(s).className='screen'+(s===id?' active':''); }); }
+
+function toStep1(){ picked=new Set(); running=false; show('s1'); document.getElementById('result').style.display='none'; }
+
+function toNames(){
+  const grid=document.getElementById('names-grid'); grid.innerHTML='';
+  for(let i=1;i<=N;i++){
+    const wrap=document.createElement('div'); wrap.className='name-input-wrap';
+    const lbl=document.createElement('div'); lbl.className='name-label'; lbl.textContent=i+'팀';
+    const inp=document.createElement('input'); inp.className='name-input'; inp.type='text';
+    inp.placeholder='팀 이름 입력'; inp.maxLength=10; inp.id='ni'+i;
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ const next=document.getElementById('ni'+(i+1)); if(next) next.focus(); else toPickScreen(); } });
+    wrap.appendChild(lbl); wrap.appendChild(inp); grid.appendChild(wrap);
+  }
+  show('s2');
+  setTimeout(()=>document.getElementById('ni1').focus(),100);
+}
+
+function toPickScreen(){
+  teams=[];
+  for(let i=1;i<=N;i++){
+    const val=document.getElementById('ni'+i).value.trim();
+    teams.push(val||i+'팀');
+  }
+  picked=new Set(); running=false;
+  document.getElementById('pick-title').textContent=N+'팀 발표 뽑기';
+  buildGrid(); resetDrum(); show('s3');
+}
+
+function buildGrid(){
+  const g=document.getElementById('grid'); g.innerHTML='';
+  teams.forEach((name,i)=>{ const p=document.createElement('div'); p.className='pill'; p.id='pill'+i; p.textContent=name; g.appendChild(p); });
+}
+
+function resetDrum(){
+  document.getElementById('drum').style.background='#EEEDFE';
+  document.getElementById('dname').style.color='#3C3489';
+  document.getElementById('dname').textContent='?';
+  document.getElementById('dlbl').textContent='눌러서 뽑기!';
+  document.getElementById('pbtn').disabled=false;
+  document.getElementById('result').style.display='none';
+}
+
+function pick(){
+  if(running) return;
+  const rem=[]; teams.forEach((_,i)=>{ if(!picked.has(i)) rem.push(i); });
+  if(rem.length===0){ document.getElementById('dlbl').textContent='모두 발표했어요!'; document.getElementById('dname').textContent='★'; return; }
+  running=true;
+  document.getElementById('pbtn').disabled=true;
+  document.getElementById('result').style.display='none';
+  document.getElementById('drum').style.background='#EEEDFE';
+  document.getElementById('dname').style.color='#3C3489';
+  const winIdx=rem[Math.floor(Math.random()*rem.length)];
+  let tick=0, total=28+Math.floor(Math.random()*12), delay=60;
+  function roll(){
+    const pool=[]; teams.forEach((_,i)=>{ if(!picked.has(i)) pool.push(i); });
+    const shown=pool[tick%pool.length];
+    document.getElementById('dname').textContent=teams[shown];
+    pool.forEach(i=>{ const el=document.getElementById('pill'+i); if(el) el.className='pill'+(i===shown?' rolling':''); });
+    tick++; delay=Math.min(delay*1.08,400);
+    if(tick<total) setTimeout(roll,delay); else finish(winIdx);
+  }
+  roll();
+}
+
+function finish(w){
+  picked.add(w);
+  document.getElementById('dname').textContent=teams[w];
+  document.getElementById('dlbl').textContent=teams[w]+'!';
+  document.getElementById('drum').style.background='#7F77DD';
+  document.getElementById('dname').style.color='#fff';
+  teams.forEach((_,i)=>{ const el=document.getElementById('pill'+i); if(!el) return; if(i===w) el.className='pill winner'; else if(picked.has(i)) el.className='pill done'; else el.className='pill'; });
+  const rem=N-picked.size;
+  document.getElementById('result').style.display='block';
+  document.getElementById('rteam').textContent=teams[w]+' 발표해주세요! 🎉';
+  document.getElementById('rmsg').textContent=rem>0?'아직 '+rem+'팀 남았어요':'모든 팀이 발표했어요!';
+  confetti();
+  setTimeout(()=>{ document.getElementById('drum').style.background='#EEEDFE'; document.getElementById('dname').style.color='#3C3489'; document.getElementById('dlbl').textContent='다시 뽑기!'; document.getElementById('pbtn').disabled=false; running=false; },2200);
+}
+
+function confetti(){
+  const cols=['#7F77DD','#1D9E75','#D85A30','#D4537E','#378ADD','#EF9F27'];
+  for(let i=0;i<70;i++){
+    const el=document.createElement('div'); el.className='cp';
+    el.style.left=Math.random()*100+'%';
+    el.style.background=cols[Math.floor(Math.random()*cols.length)];
+    el.style.animationDuration=(1.2+Math.random()*1.5)+'s';
+    el.style.animationDelay=(Math.random()*0.5)+'s';
+    el.style.width=(6+Math.random()*8)+'px';
+    el.style.height=(6+Math.random()*8)+'px';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),3000);
+  }
+}
+</script>
+</body>
+</html>
